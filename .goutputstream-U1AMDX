@@ -1,0 +1,7 @@
+#!/usr/bin/php
+<?php
+session_start();
+
+$_SESSION['name'] = 'brent';
+
+echo json_encode($_SESSION);
