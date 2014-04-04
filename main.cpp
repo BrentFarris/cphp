@@ -10,24 +10,30 @@
 #include <cctype>
 #include <locale>
 
+using namespace std;
+
+#ifdef _WIN32
+const string FILE_PREFIX = "../";
+#else
+const string FILE_PREFIX = "";
+#endif
+
 // trim from start
-static inline std::string &ltrim(std::string &s) {
-        s.erase(s.begin(), std::find_if(s.begin(), s.end(), std::not1(std::ptr_fun<int, int>(std::isspace))));
+static inline string &ltrim(string &s) {
+        s.erase(s.begin(), find_if(s.begin(), s.end(), not1(ptr_fun<int, int>(isspace))));
         return s;
 }
 
 // trim from end
-static inline std::string &rtrim(std::string &s) {
-        s.erase(std::find_if(s.rbegin(), s.rend(), std::not1(std::ptr_fun<int, int>(std::isspace))).base(), s.end());
+static inline string &rtrim(string &s) {
+        s.erase(find_if(s.rbegin(), s.rend(), not1(ptr_fun<int, int>(isspace))).base(), s.end());
         return s;
 }
 
 // trim from both ends
-static inline std::string &trim(std::string &s) {
+static inline string &trim(string &s) {
         return ltrim(rtrim(s));
 }
-
-using namespace std;
 
 const string INJECTION_START = "<%=";
 const string INJECTION_END = "%>";
@@ -41,20 +47,22 @@ map<string, string> vars;
 
 int main(int argc, char* argv[])
 {
-	cout << Exec("php myprog.php") << endl;
-	string content = GetContents("index.html");
+	cout << Exec("php " + FILE_PREFIX + "myprog.php") << endl;
+	string content = GetContents(FILE_PREFIX + "index.html");
 	
 	vars["hello"] = "World";
 	
 	cout << FindInjection(content) << endl;
 	
+	cin.get();
+
 	return 0;
 }
 
 string Exec(string cmd)
 {
 	FILE* pipe;
-#if _WINDOWS
+#ifdef _WIN32
 	pipe = _popen(cmd.c_str(), "r");
 #else
 	pipe = popen(cmd.c_str(), "r");
@@ -72,7 +80,7 @@ string Exec(string cmd)
 			result += buffer;
 	}
 
-#if _WINDOWS
+#ifdef _WIN32
 	_pclose(pipe);
 #else
 	pclose(pipe);
@@ -81,10 +89,10 @@ string Exec(string cmd)
 	return result;
 }
 
-string GetContents(string file)
+string GetContents(string fileName)
 {
-	ifstream ifs(file.c_str());
-	string str((std::istreambuf_iterator<char>(ifs)), (std::istreambuf_iterator<char>()));
+	ifstream ifs(fileName.c_str());
+	string str((istreambuf_iterator<char>(ifs)), (istreambuf_iterator<char>()));
 	return str;
 }
 
